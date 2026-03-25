@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Env
+.env
+
+# VS Code
+.vscode/
+
+# Data
+data/processed/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
