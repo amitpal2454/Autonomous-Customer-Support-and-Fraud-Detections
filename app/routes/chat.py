@@ -17,11 +17,12 @@ async def chat(req: ChatRequest):
     }
 
     # 🔥 CALL LANGGRAPH
+    from memory.vector_memory import save_session
+
     result = await graph.ainvoke(state)
 
-    return {
-        "response": result.get("response"),
-        "intent": result.get("intent"),
-        "route": result.get("route"),
-        "fraud_score": result.get("fraud_score")
-    }
+    save_session(
+        req.user_id,
+        req.message,
+        result.get("response")
+    )

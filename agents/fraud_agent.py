@@ -1,7 +1,7 @@
 # Auto-generated
 from tools.fraud_protection import calculate_fraud_score
 from models.enums import FraudDecision
-
+from tools.redis_store import check_velocity
 async def run_fraud_agent(state):
     user_id = state["user_id"]
 
