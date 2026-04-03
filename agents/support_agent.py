@@ -22,29 +22,32 @@ async def run_support_agent(state):
 
     # 🔹 Prompt (IMPORTANT)
     prompt = f"""
-You are an intelligent customer support assistant.
+    You are a customer support assistant.
 
-Use the following:
+    Use ONLY the provided policy context to answer.
 
-Customer History:
-{history_text}
+    Policy Context:
+    {policy}
 
-Company Policy:
-{policy}
+    User Query:
+    {query}
 
-User Query:
-{query}
+    Instructions:
+    - If answer is found → respond clearly
+    - If partially found → explain using available info
+    - If NOT found → say "Not mentioned in policy"
+    - DO NOT ignore the context
 
-Rules:
-- Follow company policy strictly
-- Use past history if relevant
-- Be clear and professional
-- Do NOT hallucinate
-
-Final Answer:
-"""
+    Answer:
+    """
 
     # 🔹 LLM Call
+    print("POLICY PASSED TO LLM:\n", policy)
+    if not policy or policy.strip() == "":
+        return {
+            **state,
+            "response": "No relevant policy found."
+        }
     response = generate_response(prompt)
 
     return {

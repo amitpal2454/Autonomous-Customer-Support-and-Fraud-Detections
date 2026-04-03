@@ -21,8 +21,19 @@ async def chat(req: ChatRequest):
 
     result = await graph.ainvoke(state)
 
+    print("Final Result:",result)
+
     save_session(
         req.user_id,
         req.message,
         result.get("response")
     )
+
+    return {
+    "response": result.get("response"),
+    "intent": result.get("intent").value if result.get("intent") else None,
+    "route": result.get("route").value if result.get("route") else None,
+    "fraud_score": result.get("fraud_score"),
+    "fraud_decision": result.get("fraud_decision").value if result.get("fraud_decision") else None
+    }
+    

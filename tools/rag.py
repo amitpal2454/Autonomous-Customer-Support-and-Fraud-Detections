@@ -1,20 +1,48 @@
-from pinecone import Pinecone
-from utils.config import get_settings
+import chromadb
+from utils.llm import get_embedding
 
-settings = get_settings()
 
-pc = Pinecone(api_key=settings.pinecone_api_key)
-index = pc.Index(settings.pinecone_index)
+import os
+
+DB_PATH = os.path.abspath("data/chroma_db")
+
+print("CHROMA PATH:", DB_PATH)
+
+client = chromadb.PersistentClient(path=DB_PATH)
+collection = client.get_or_create_collection("policy_docs")
+
+def classify_query(query: str):
+    q = query.lower()
+
+    if "refund" in q:
+        return "refund"
+    elif "return" in q:
+        return "return"
+    elif "fraud" in q:
+        return "fraud"
+    elif "exchange" in q:
+        return "exchange"
+    else:
+        return None
 
 
 async def retrieve_policy(query: str):
-    response = index.query(
-        vector=[],  # will replace with embedding
-        top_k=3,
-        include_metadata=True
+    query_embedding = get_embedding(query)
+
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=3
     )
 
-    if response.matches:
-        return response.matches[0].metadata.get("text", "")
+    print("RAG Results:", results)
 
-    return "No relevant policy found."
+    docs = results["documents"][0]
+
+# take top 2 relevant chunks
+    docs = docs[:2]
+
+    policy_text = "\n\n".join(docs)
+
+    return policy_text
+
+    #return "No relevant policy found."

@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     redis_port: int = 6379
 
     # ML Endpoint
-    azure_ml_endpoint: str
-    azure_ml_key: str
+    #azure_ml_endpoint: str
+    #azure_ml_key: str
 
     class Config:
         env_file = ".env"
