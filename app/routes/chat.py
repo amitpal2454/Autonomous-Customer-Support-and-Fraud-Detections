@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from graph.workflow import graph
-
+from models.api_models import ChatResponse
 router = APIRouter()
 
 class ChatRequest(BaseModel):
@@ -9,7 +9,7 @@ class ChatRequest(BaseModel):
     message: str
 
 
-@router.post("/chat", tags=["Chat"])
+@router.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     state = {
         "user_id": req.user_id,
