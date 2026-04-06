@@ -39,6 +39,12 @@ if "messages" not in st.session_state:
 # -----------------------------
 col_chat, col_insights = st.columns([2, 1])
 
+
+user_id = st.selectbox(
+    "Select User",
+    [f"user_{i}" for i in range(1, 101)]
+)
+
 # -----------------------------
 # Chat Section
 # -----------------------------
@@ -98,12 +104,16 @@ with col_insights:
             st.metric("Route", meta.get("route"))
 
             fraud_score = meta.get("fraud_score", 0)
+            decision = meta.get("fraud_decision", "unknown")
 
-            # Color logic
-            if fraud_score > 0.7:
-                st.error(f"🚨 Fraud Risk: {fraud_score}")
+            st.markdown("### 🛡 Fraud Risk Analysis")
+
+            if decision == "block":
+                st.error(f"🚨 BLOCKED ({fraud_score})")
+            elif decision == "review":
+                st.warning(f"⚠️ Needs Review ({fraud_score})")
             else:
-                st.success(f"✅ Fraud Score: {fraud_score}")
+                st.success(f"✅ Approved ({fraud_score})")
 
             st.markdown("---")
 

@@ -1,22 +1,34 @@
-# Auto-generated
-from tools.fraud_protection import calculate_fraud_score
-from models.enums import FraudDecision
-from tools.redis_store import check_velocity
+from tools.user_data import get_user_features
+from tools.fraud_protection import calculate_fraud_score, fraud_decision
+
+
 async def run_fraud_agent(state):
     user_id = state["user_id"]
+    message = state["message"]
 
-    score = await calculate_fraud_score(user_id)
+    features = get_user_features(user_id)
 
-    if score > 0.8:
-        decision = FraudDecision.BLOCK
-        response = "Fraud detected. Request blocked."
-    else:
-        decision = FraudDecision.APPROVE
-        response = "Fraud check passed."
+    if not features:
+        return {
+            **state,
+            "fraud_score": 0.0,
+            "fraud_decision": "approve"
+        }
+
+    score = calculate_fraud_score(features, message)
+    decision = fraud_decision(score)
+
+    # 🚨 BLOCK CASE
+    if decision == "block":
+        return {
+            **state,
+            "fraud_score": score,
+            "fraud_decision": decision,
+            "response": "🚨 Your request is flagged as suspicious and cannot be processed."
+        }
 
     return {
         **state,
         "fraud_score": score,
-        "fraud_decision": decision,
-        "response": response
+        "fraud_decision": decision
     }
