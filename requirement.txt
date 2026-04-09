@@ -70,3 +70,6 @@ orjson      # faster JSON
 
 chromadb
 langchain-text-splitters
+ultralytics 
+opencv-python 
+pillow

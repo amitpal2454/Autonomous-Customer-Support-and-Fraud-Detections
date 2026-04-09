@@ -6,44 +6,44 @@ API_URL = "http://127.0.0.1:8000/chat"
 st.set_page_config(page_title="AI Support System", layout="wide")
 
 # -----------------------------
-# Sidebar (Business Context)
+# Sidebar
 # -----------------------------
-st.sidebar.title("⚙️ System Overview")
-st.sidebar.markdown("""
-**Autonomous AI System**
-- Multi-Agent Orchestration (LangGraph)
-- Support + Fraud + Retention
-- RAG + Memory Enabled
+st.sidebar.markdown("## 🤖 Autonomous AI System")
 
-**Business Impact**
-- ⏱ Faster response time  
-- 🤖 Reduced manual effort  
-- 🛡 Fraud detection  
-- 💰 Retention optimization  
+st.sidebar.markdown("""
+### ⚙️ Capabilities
+- 🧠 Multi-Agent AI  
+- 🎯 Intent Detection  
+- 🛡 Fraud Detection  
+- 📚 Policy Validation  
+
+---
+
+### 💼 Business Impact
+- ⏱ Faster Support  
+- 🤖 Reduced Manual Work  
+- 🛡 Risk Detection  
+- 💰 Retention Ready  
 """)
 
 # -----------------------------
-# Title
+# Header
 # -----------------------------
-st.title("🤖 Autonomous Customer Support Platform")
-st.caption("AI-powered support • fraud detection • retention intelligence")
+st.title("🤖 AI Customer Support Platform")
+st.caption("Autonomous Support • Fraud Detection • Smart Decisions")
 
 # -----------------------------
-# Chat State
+# User Selector
 # -----------------------------
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+user_id = st.selectbox(
+    "👤 Select User",
+    [f"user_{i}" for i in range(1, 101)]
+)
 
 # -----------------------------
 # Layout
 # -----------------------------
-col_chat, col_insights = st.columns([2, 1])
-
-
-user_id = st.selectbox(
-    "Select User",
-    [f"user_{i}" for i in range(1, 101)]
-)
+col_chat, col_insight = st.columns([2, 1])
 
 # -----------------------------
 # Chat Section
@@ -51,82 +51,109 @@ user_id = st.selectbox(
 with col_chat:
     st.subheader("💬 Customer Interaction")
 
-    # Display chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
 
-    user_input = st.chat_input("Ask about refunds, returns, issues...")
+    # 🖼 Image Upload
+    uploaded_file = st.file_uploader("📸 Upload product image (optional)", type=["jpg", "png"])
+
+    user_input = st.chat_input("Describe your issue...")
 
     if user_input:
-        # Add user message
         st.session_state.messages.append({
             "role": "user",
             "content": user_input
         })
 
-        # Call API
+        files = None
+        if uploaded_file:
+            files = {"file": uploaded_file.getvalue()}
+
         response = requests.post(
             API_URL,
-            json={"user_id": "demo", "message": user_input}
+            json={
+                "user_id": user_id,
+                "message": user_input
+            }
         )
 
         if response.status_code == 200:
             result = response.json()
 
-            bot_response = result.get("response")
-
             st.session_state.messages.append({
                 "role": "assistant",
-                "content": bot_response,
+                "content": result.get("response"),
                 "meta": result
             })
 
             st.rerun()
         else:
-            st.error("API error")
+            st.error("API Error")
 
 # -----------------------------
 # Insights Panel
 # -----------------------------
-with col_insights:
+with col_insight:
     st.subheader("📊 AI Insights")
 
     if st.session_state.messages:
-        last_msg = st.session_state.messages[-1]
+        last = st.session_state.messages[-1]
 
-        if last_msg["role"] == "assistant":
-            meta = last_msg.get("meta", {})
+        if last["role"] == "assistant":
+            meta = last.get("meta", {})
 
-            st.markdown("### 🔍 Decision Engine")
+            # 🎯 Intent with emoji
+            intent = meta.get("intent")
 
-            st.metric("Intent", meta.get("intent"))
-            st.metric("Route", meta.get("route"))
+            intent_icon = {
+                "refund": "💸",
+                "complaint": "⚠️",
+                "inquiry": "❓"
+            }.get(intent, "🔎")
 
+            st.markdown("### 🎯 Intent")
+            st.markdown(f"{intent_icon} **{intent}**")
+
+            # 🛡 Fraud Score
             fraud_score = meta.get("fraud_score", 0)
-            decision = meta.get("fraud_decision", "unknown")
+            decision = meta.get("fraud_decision")
 
-            st.markdown("### 🛡 Fraud Risk Analysis")
+            st.markdown("### 🛡 Fraud Risk")
 
             if decision == "block":
                 st.error(f"🚨 BLOCKED ({fraud_score})")
             elif decision == "review":
-                st.warning(f"⚠️ Needs Review ({fraud_score})")
+                st.warning(f"⚠️ REVIEW ({fraud_score})")
             else:
-                st.success(f"✅ Approved ({fraud_score})")
+                st.success(f"✅ APPROVED ({fraud_score})")
 
-            st.markdown("---")
+            # 🧠 Fraud Reasons
+            st.markdown("### 🧠 Why this decision?")
+            reasons = meta.get("fraud_reason", [])
 
-            st.markdown("### 🧠 System Behavior")
-            st.write("✔ Context-aware response")
-            st.write("✔ Policy-grounded answer")
-            st.write("✔ Multi-agent routing")
+            if reasons:
+                for r in reasons:
+                    st.write(f"• {r}")
+            else:
+                st.write("No risk signals detected")
+
+            # 🤖 LLM Explanation
+            st.markdown("### 🤖 AI Explanation")
+            st.write(meta.get("fraud_explanation", "No explanation"))
+
+            # 🧠 Issue Detection (Object-like classification)
+            st.markdown("### 📦 Issue Detected")
+            st.write(meta.get("issue_type", "Not detected"))
 
     else:
-        st.info("Ask a question to see AI insights")
+        st.info("Start conversation to see insights")
 
 # -----------------------------
 # Footer
 # -----------------------------
 st.markdown("---")
-st.caption("Built with FastAPI • LangGraph • Azure OpenAI • RAG")
+st.caption("Powered by LangGraph • Azure OpenAI • RAG • Fraud Intelligence")
